@@ -19,6 +19,7 @@ function createCryptoServer() {
           uri: "ui://widget/crypto.html",
           mimeType: "text/html+skybridge",
           text: widgetHtml,
+          _meta: { "openai/widgetPrefersBorder": true },
         },
       ],
     }),
@@ -29,12 +30,13 @@ function createCryptoServer() {
     {
       title: "Get Crypto Data",
       description:
-        "Use this when the user wants to see live cryptocurrency market data, prices, or rankings.",
-      inputSchema: { limit: z.number().default(10) },
+        "Use this when the user wants to see live cryptocurrency prices, market caps, rankings, or market data. Returns an interactive widget with sorting and drill-down.",
+      inputSchema: { limit: z.number().default(20) },
       _meta: {
         "openai/outputTemplate": "ui://widget/crypto.html",
-        "openai/toolInvocation/invoking": "Fetching crypto data…",
-        "openai/toolInvocation/invoked": "Crypto data loaded",
+        "openai/toolInvocation/invoking": "Fetching live crypto data…",
+        "openai/toolInvocation/invoked": "Crypto market data loaded",
+        "openai/widgetAccessible": true,
       },
     },
     async ({ limit }) => {
@@ -43,22 +45,29 @@ function createCryptoServer() {
           `https://api.coinpaprika.com/v1/tickers?limit=${limit}`,
         );
         const json = await resp.json();
-        const cryptos = json.map((c) => ({
+        const cryptos = json.map((c, i) => ({
           id: c.id,
           symbol: c.symbol,
           name: c.name,
+          rank: c.rank ?? i + 1,
           current_price: c.quotes.USD.price,
           market_cap: c.quotes.USD.market_cap,
+          volume_24h: c.quotes.USD.volume_24h,
           price_change_percentage_24h: c.quotes.USD.percent_change_24h,
+          change_7d: c.quotes.USD.percent_change_7d,
+          change_30d: c.quotes.USD.percent_change_30d,
+          ath: c.quotes.USD.ath_price ?? null,
+          circulating: c.circulating_supply ?? null,
         }));
         return {
           structuredContent: { cryptos },
-          content: [{ type: "text", text: "Success." }],
+          content: [{ type: "text", text: `Loaded ${cryptos.length} coins.` }],
         };
       } catch (e) {
+        console.error("CoinPaprika error:", e);
         return {
           structuredContent: { cryptos: [] },
-          content: [{ type: "text", text: "API Error." }],
+          content: [{ type: "text", text: "Failed to fetch crypto data." }],
         };
       }
     },
@@ -102,17 +111,15 @@ const httpServer = createServer(async (req, res) => {
       sessionIdGenerator: undefined,
       enableJsonResponse: true,
     });
-
     res.on("close", () => {
       transport.close();
       server.close();
     });
-
     try {
       await server.connect(transport);
       await transport.handleRequest(req, res);
     } catch (err) {
-      console.error("MCP request error:", err);
+      console.error("MCP error:", err);
       if (!res.headersSent) res.writeHead(500).end("Internal server error");
     }
     return;
@@ -122,7 +129,5 @@ const httpServer = createServer(async (req, res) => {
 });
 
 httpServer.listen(port, () =>
-  console.log(
-    `🚀 crypto-monitor MCP server ready → http://localhost:${port}${MCP_PATH}`,
-  ),
+  console.log(`🚀 crypto-monitor ready → http://localhost:${port}${MCP_PATH}`),
 );
