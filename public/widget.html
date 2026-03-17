@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, sans-serif; padding: 12px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px; border-bottom: 2px solid #eee; color: #666; }
+    td { padding: 8px; border-bottom: 1px solid #f2f4fb; }
+    .price-up { color: #10b981; font-weight: bold; }
+    .price-down { color: #ef4444; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <table>
+    <thead><tr><th>Asset</th><th>Price</th><th>24h %</th></tr></thead>
+    <tbody id="list"></tbody>
+  </table>
+  <script>
+    function render(coins) {
+      const listEl = document.getElementById('list');
+      if (!coins || coins.length === 0) {
+        listEl.innerHTML = "<tr><td colspan='3'>No data available.</td></tr>";
+        return;
+      }
+      listEl.innerHTML = coins.map(c => `
+        <tr>
+          <td><strong>${c.symbol.toUpperCase()}</strong><br><small>${c.name}</small></td>
+          <td>$${c.current_price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+          <td class="${c.price_change_percentage_24h >= 0 ? 'price-up' : 'price-down'}">
+            ${c.price_change_percentage_24h.toFixed(2)}%
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Check for existing data
+    if (window.openai?.toolOutput?.cryptos) render(window.openai.toolOutput.cryptos);
+
+    // Listen for new data updates
+    window.addEventListener("openai:set_globals", (e) => {
+      if (e.detail.globals.toolOutput?.cryptos) {
+        render(e.detail.globals.toolOutput.cryptos);
+      }
+    });
+  </script>
+</body>
+</html>
