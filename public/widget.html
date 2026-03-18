@@ -422,6 +422,14 @@
       });
     }
   }
+  if (req.method === "GET" && req.url === "/widget.html") {
+  console.log("✅ Widget HTML requested from:", req.headers["user-agent"]);
+  res.writeHead(200, {
+    "content-type": "text/html",
+    "Access-Control-Allow-Origin": "*",
+  }).end(widgetHtml);
+  return;
+}
 </script>
 </body>
 </html>

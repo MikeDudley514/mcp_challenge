@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { z } from "zod";
 
 const widgetHtml = readFileSync("public/widget.html", "utf8");
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:8787";
 
 function createCryptoServer() {
   const server = new McpServer({ name: "crypto-monitor", version: "1.0.0" });
@@ -21,8 +22,8 @@ function createCryptoServer() {
           text: widgetHtml,
           _meta: {
             "openai/widgetPrefersBorder": true,
-            "openai/widgetDomain":
-              "http://unnaked-lowell-phantasmagorically.ngrok-free.dev",
+            "openai/widgetDomain": "https://athenachat.bot",
+            "openai/widgetUrl": `${BASE_URL}/widget.html`,
           },
         },
       ],
@@ -40,6 +41,8 @@ function createCryptoServer() {
         "openai/outputTemplate": "ui://widget/crypto.html",
         "openai/toolInvocation/invoking": "Fetching live crypto data…",
         "openai/toolInvocation/invoked": "Crypto market data loaded",
+        "openai/widgetAccessible": true,
+        "openai/widgetDomain": "https://athenachat.bot",
       },
     },
     async ({ limit }) => {
@@ -65,6 +68,12 @@ function createCryptoServer() {
         return {
           structuredContent: { cryptos },
           content: [{ type: "text", text: "Success." }],
+          _meta: {
+            "openai/outputTemplate": "ui://widget/crypto.html",
+            "openai/widgetDomain": "https://athenachat.bot",
+            "openai/widgetUrl": `${BASE_URL}/widget.html`,
+            "openai/widgetHtml": widgetHtml,
+          },
         };
       } catch (e) {
         return {
@@ -99,9 +108,14 @@ const httpServer = createServer(async (req, res) => {
     return;
   }
 
-  // Serve widget HTML as a plain static file for debugging
   if (req.method === "GET" && req.url === "/widget.html") {
-    res.writeHead(200, { "content-type": "text/html" }).end(widgetHtml);
+    console.log("✅ Widget HTML requested from:", req.headers["user-agent"]);
+    res
+      .writeHead(200, {
+        "content-type": "text/html",
+        "Access-Control-Allow-Origin": "*",
+      })
+      .end(widgetHtml);
     return;
   }
 
@@ -115,7 +129,6 @@ const httpServer = createServer(async (req, res) => {
     ["GET", "POST", "DELETE"].includes(req.method)
   ) {
     req.headers["accept"] = "application/json, text/event-stream";
-
     const server = createCryptoServer();
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
@@ -139,5 +152,7 @@ const httpServer = createServer(async (req, res) => {
 });
 
 httpServer.listen(port, () =>
-  console.log(`🚀 crypto-monitor ready → http://localhost:${port}${MCP_PATH}`),
+  console.log(
+    `🚀 crypto-monitor ready → http://localhost:${port}${MCP_PATH}\n   Widget: ${BASE_URL}/widget.html`,
+  ),
 );
