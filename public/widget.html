@@ -2,434 +2,406 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Crypto Monitor</title>
+  <title>Crypto Markets</title>
   <style>
     :root {
-      font-family: "Inter", system-ui, -apple-system, sans-serif;
-      --blue: #111bf5;
+      --accent: #f7931a;
       --green: #16a34a;
       --red: #dc2626;
-      --bg: #f6f8fb;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --text: #0b0b0f;
-      --muted: #64748b;
-      --row-hover: #f1f5ff;
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3a;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
     }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; background: var(--bg); color: var(--text); }
+
+    html, body {
+      width: 100%; min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+    }
+
     body { padding: 16px; }
 
-    .card {
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(15,23,42,0.08);
-      overflow: hidden;
-    }
-
-    /* ── Header ── */
-    .header {
+    header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px 12px;
-      border-bottom: 1px solid var(--border);
+      gap: 10px;
+      margin-bottom: 16px;
     }
-    .header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
-    .header-right { display: flex; gap: 8px; align-items: center; }
 
-    /* ── Filter pills ── */
-    .filter-group { display: flex; gap: 6px; }
-    .pill {
-      padding: 4px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: transparent;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    header .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    #status {
+      font-size: 0.8rem;
       color: var(--muted);
-      transition: all 0.15s;
+      margin-bottom: 12px;
     }
-    .pill.active { background: var(--blue); border-color: var(--blue); color: #fff; }
 
-    /* ── Table ── */
-    table { width: 100%; border-collapse: collapse; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
     thead th {
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
       text-align: right;
+      padding: 8px 10px;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
-      background: #fafbfd;
-      border-bottom: 1px solid var(--border);
     }
-    thead th:first-child { text-align: left; padding-left: 20px; }
-    thead th:last-child { padding-right: 20px; }
-    thead th.sorted { color: var(--blue); }
-    .sort-arrow { margin-left: 3px; font-size: 0.65rem; }
+
+    thead th:first-child { text-align: left; }
+    thead th:hover { color: var(--text); }
+    thead th.sorted { color: var(--accent); }
 
     tbody tr {
       border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
       cursor: pointer;
-      transition: background 0.1s;
     }
+
+    tbody tr:hover { background: var(--surface); }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--row-hover); }
 
     td {
-      padding: 11px 12px;
-      font-size: 0.85rem;
+      padding: 10px 10px;
       text-align: right;
-      vertical-align: middle;
+      white-space: nowrap;
     }
-    td:first-child { text-align: left; padding-left: 20px; }
-    td:last-child { padding-right: 20px; }
 
-    .coin-info { display: flex; align-items: center; gap: 10px; }
-    .coin-symbol {
-      background: var(--blue);
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.7rem;
-      padding: 3px 7px;
-      border-radius: 6px;
-      min-width: 38px;
-      text-align: center;
+    td:first-child { text-align: left; }
+
+    .coin-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .coin-name { font-weight: 600; font-size: 0.88rem; }
-    .coin-rank { font-size: 0.72rem; color: var(--muted); }
 
-    .change-up { color: var(--green); font-weight: 600; }
-    .change-down { color: var(--red); font-weight: 600; }
-    .price { font-weight: 600; font-variant-numeric: tabular-nums; }
-    .mcap { color: var(--muted); font-size: 0.82rem; }
+    .rank {
+      color: var(--muted);
+      font-size: 0.75rem;
+      width: 20px;
+      text-align: right;
+      flex-shrink: 0;
+    }
 
-    /* ── Detail panel ── */
-    .detail-overlay {
+    .coin-info { display: flex; flex-direction: column; }
+    .coin-symbol { font-weight: 700; font-size: 0.9rem; }
+    .coin-name { font-size: 0.72rem; color: var(--muted); }
+
+    .up { color: var(--green); }
+    .down { color: var(--red); }
+    .neutral { color: var(--muted); }
+
+    .price { font-weight: 600; }
+
+    #detail-panel {
       display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      z-index: 10;
-      align-items: flex-end;
-      justify-content: center;
+      margin-top: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 16px;
     }
-    .detail-overlay.open { display: flex; }
-    .detail-panel {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 24px 20px 20px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 -4px 40px rgba(15,23,42,0.15);
-      animation: slideUp 0.2s ease;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-    .detail-top {
+
+    #detail-panel.open { display: block; }
+
+    #detail-panel h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 18px;
+      align-items: center;
     }
-    .detail-symbol {
-      background: var(--blue);
-      color: #fff;
-      font-weight: 800;
-      font-size: 1rem;
-      padding: 5px 12px;
-      border-radius: 10px;
-    }
-    .detail-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 2px; }
-    .detail-rank { font-size: 0.78rem; color: var(--muted); }
-    .close-btn {
-      background: var(--border);
+
+    #detail-panel h2 button {
+      background: none;
       border: none;
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
       color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
     }
-    .detail-price {
-      font-size: 1.6rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 4px;
-    }
-    .detail-change { font-size: 0.9rem; font-weight: 600; margin-bottom: 20px; }
+
     .detail-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-    .detail-stat {
-      background: var(--bg);
-      border-radius: 12px;
-      padding: 12px 14px;
-    }
-    .stat-label { font-size: 0.7rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
-    .stat-value { font-size: 0.88rem; font-weight: 700; }
 
-    .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
-    .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 0.85rem; }
+    .detail-item label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .detail-item span {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    #empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <h2>🪙 Crypto Markets</h2>
-      <div class="header-right">
-        <div class="filter-group" id="filter-group">
-          <button class="pill active" data-filter="all">All</button>
-          <button class="pill" data-filter="up">▲ Up</button>
-          <button class="pill" data-filter="down">▼ Down</button>
-        </div>
-      </div>
-    </div>
+  <header>
+    <span class="dot"></span>
+    <h1>Crypto Markets</h1>
+  </header>
 
-    <div id="table-wrap">
-      <div class="loading">Loading market data…</div>
-    </div>
+  <div id="status"><span class="spinner"></span>Loading market data…</div>
+
+  <table id="table" style="display:none">
+    <thead>
+      <tr>
+        <th data-col="rank">#</th>
+        <th data-col="price">Price</th>
+        <th data-col="change24">24h %</th>
+        <th data-col="change7">7d %</th>
+        <th data-col="mcap">Market Cap</th>
+        <th data-col="vol">Volume 24h</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div id="detail-panel">
+    <h2>
+      <span id="detail-title">—</span>
+      <button id="detail-close">✕</button>
+    </h2>
+    <div class="detail-grid" id="detail-grid"></div>
   </div>
 
-  <!-- Detail overlay (Interaction 2: drill-down) -->
-  <div class="detail-overlay" id="detail-overlay">
-    <div class="detail-panel" id="detail-panel">
-      <div class="detail-top">
-        <div>
-          <div class="detail-name" id="d-name"></div>
-          <div class="detail-rank" id="d-rank"></div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <span class="detail-symbol" id="d-symbol"></span>
-          <button class="close-btn" id="close-detail">✕</button>
-        </div>
-      </div>
-      <div class="detail-price" id="d-price"></div>
-      <div class="detail-change" id="d-change"></div>
-      <div class="detail-grid" id="d-grid"></div>
-    </div>
-  </div>
+  <div id="empty" style="display:none">No data available.</div>
 
-<script type="module">
-  // ── State ──────────────────────────────────────────────────────────────
-  let cryptos = [...(window.openai?.toolOutput?.cryptos ?? [])];
+  <script type="module">
+    // ── helpers ──────────────────────────────────────────────────────────────
+    const fmt = (n, dec = 2) =>
+      n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 
-  // Rehydrate UI state (sort + filter) persisted from previous renders
-  const savedState = window.openai?.widgetState ?? {};
-  let sortKey    = savedState.sortKey    ?? "market_cap";
-  let sortDir    = savedState.sortDir    ?? "desc";
-  let filter     = savedState.filter     ?? "all";
-  let selectedId = savedState.selectedId ?? null;
+    const fmtPrice = (n) => {
+      if (n == null) return '—';
+      if (n >= 1000) return '$' + fmt(n, 0);
+      if (n >= 1)    return '$' + fmt(n, 2);
+      if (n >= 0.01) return '$' + fmt(n, 4);
+      return '$' + Number(n).toExponential(2);
+    };
 
-  // ── Helpers ────────────────────────────────────────────────────────────
-  const fmt = {
-    price: (n) => n >= 1
-      ? "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-      : "$" + n.toFixed(6),
-    mcap:  (n) => {
-      if (n >= 1e12) return "$" + (n / 1e12).toFixed(2) + "T";
-      if (n >= 1e9)  return "$" + (n / 1e9).toFixed(2)  + "B";
-      if (n >= 1e6)  return "$" + (n / 1e6).toFixed(2)  + "M";
-      return "$" + n.toLocaleString();
-    },
-    pct: (n) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%",
-  };
+    const fmtBig = (n) => {
+      if (n == null) return '—';
+      if (n >= 1e12) return '$' + fmt(n / 1e12, 2) + 'T';
+      if (n >= 1e9)  return '$' + fmt(n / 1e9, 2) + 'B';
+      if (n >= 1e6)  return '$' + fmt(n / 1e6, 2) + 'M';
+      return '$' + fmt(n, 0);
+    };
 
-  function persistState() {
-    window.openai?.setWidgetState?.({ sortKey, sortDir, filter, selectedId });
-  }
+    const changeClass = (v) => v == null ? 'neutral' : v > 0 ? 'up' : v < 0 ? 'down' : 'neutral';
+    const changeText = (v) => v == null ? '—' : (v > 0 ? '+' : '') + fmt(v) + '%';
 
-  // ── Interaction 1: Sort ────────────────────────────────────────────────
-  function sortedData() {
-    let data = [...cryptos];
-    if (filter === "up")   data = data.filter(c => c.price_change_percentage_24h >= 0);
-    if (filter === "down") data = data.filter(c => c.price_change_percentage_24h <  0);
-    data.sort((a, b) => {
-      const av = a[sortKey] ?? 0, bv = b[sortKey] ?? 0;
-      return sortDir === "asc" ? av - bv : bv - av;
-    });
-    return data;
-  }
+    // ── state ────────────────────────────────────────────────────────────────
+    let cryptos = [];
+    let sortCol = 'rank';
+    let sortAsc = true;
+    let selectedId = null;
 
-  function setSort(key) {
-    if (sortKey === key) sortDir = sortDir === "desc" ? "asc" : "desc";
-    else { sortKey = key; sortDir = "desc"; }
-    persistState();
-    renderTable();
-  }
+    const statusEl  = document.getElementById('status');
+    const tableEl   = document.getElementById('table');
+    const tbodyEl   = document.getElementById('tbody');
+    const emptyEl   = document.getElementById('empty');
+    const detailEl  = document.getElementById('detail-panel');
+    const detailTitle = document.getElementById('detail-title');
+    const detailGrid  = document.getElementById('detail-grid');
 
-  // ── Interaction 2: Drill-down detail panel ─────────────────────────────
-  function openDetail(coin) {
-    selectedId = coin.id;
-    persistState();
+    // ── render ───────────────────────────────────────────────────────────────
+    function render() {
+      if (!cryptos.length) {
+        statusEl.style.display = 'none';
+        tableEl.style.display  = 'none';
+        emptyEl.style.display  = 'block';
+        return;
+      }
 
-    const pct = coin.price_change_percentage_24h;
-    document.getElementById("d-name").textContent    = coin.name;
-    document.getElementById("d-rank").textContent    = `Rank #${coin.rank ?? "—"}`;
-    document.getElementById("d-symbol").textContent  = coin.symbol;
-    document.getElementById("d-price").textContent   = fmt.price(coin.current_price);
-    const changeEl = document.getElementById("d-change");
-    changeEl.textContent  = fmt.pct(pct) + " (24h)";
-    changeEl.className    = "detail-change " + (pct >= 0 ? "change-up" : "change-down");
+      statusEl.style.display = 'none';
+      tableEl.style.display  = 'table';
+      emptyEl.style.display  = 'none';
 
-    const stats = [
-      { label: "Market Cap",   value: fmt.mcap(coin.market_cap) },
-      { label: "24h Volume",   value: coin.volume_24h   ? fmt.mcap(coin.volume_24h)   : "—" },
-      { label: "7d Change",    value: coin.change_7d    ? fmt.pct(coin.change_7d)     : "—" },
-      { label: "30d Change",   value: coin.change_30d   ? fmt.pct(coin.change_30d)    : "—" },
-      { label: "ATH",          value: coin.ath          ? fmt.price(coin.ath)         : "—" },
-      { label: "Circulating",  value: coin.circulating  ? fmt.mcap(coin.circulating)  : "—" },
-    ];
-
-    document.getElementById("d-grid").innerHTML = stats.map(s => `
-      <div class="detail-stat">
-        <div class="stat-label">${s.label}</div>
-        <div class="stat-value">${s.value}</div>
-      </div>`).join("");
-
-    document.getElementById("detail-overlay").classList.add("open");
-  }
-
-  function closeDetail() {
-    selectedId = null;
-    persistState();
-    document.getElementById("detail-overlay").classList.remove("open");
-  }
-
-  document.getElementById("close-detail").addEventListener("click", closeDetail);
-  document.getElementById("detail-overlay").addEventListener("click", (e) => {
-    if (e.target === document.getElementById("detail-overlay")) closeDetail();
-  });
-
-  // ── Render table ───────────────────────────────────────────────────────
-  function thArrow(key) {
-    if (sortKey !== key) return "";
-    return `<span class="sort-arrow">${sortDir === "desc" ? "▼" : "▲"}</span>`;
-  }
-
-  function renderTable() {
-    const wrap = document.getElementById("table-wrap");
-    const data = sortedData();
-
-    if (!data.length) {
-      wrap.innerHTML = `<div class="empty">No coins match this filter.</div>`;
-      return;
-    }
-
-    // Update filter pills
-    document.querySelectorAll(".pill").forEach(p => {
-      p.classList.toggle("active", p.dataset.filter === filter);
-    });
-
-    wrap.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th data-sort="name">Coin</th>
-            <th data-sort="current_price" class="${sortKey==="current_price"?"sorted":""}">
-              Price ${thArrow("current_price")}
-            </th>
-            <th data-sort="price_change_percentage_24h" class="${sortKey==="price_change_percentage_24h"?"sorted":""}">
-              24h ${thArrow("price_change_percentage_24h")}
-            </th>
-            <th data-sort="market_cap" class="${sortKey==="market_cap"?"sorted":""}">
-              Mkt Cap ${thArrow("market_cap")}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          ${data.map((c, i) => {
-            const pct = c.price_change_percentage_24h;
-            return `<tr data-id="${c.id}">
-              <td>
-                <div class="coin-info">
-                  <span class="coin-symbol">${c.symbol}</span>
-                  <div>
-                    <div class="coin-name">${c.name}</div>
-                    <div class="coin-rank">#${c.rank ?? i+1}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="price">${fmt.price(c.current_price)}</td>
-              <td class="${pct >= 0 ? "change-up" : "change-down"}">${fmt.pct(pct)}</td>
-              <td class="mcap">${fmt.mcap(c.market_cap)}</td>
-            </tr>`;
-          }).join("")}
-        </tbody>
-      </table>`;
-
-    // Sort click handlers
-    wrap.querySelectorAll("th[data-sort]").forEach(th => {
-      th.addEventListener("click", () => setSort(th.dataset.sort));
-    });
-
-    // Row click → drill-down
-    wrap.querySelectorAll("tbody tr").forEach(row => {
-      row.addEventListener("click", () => {
-        const coin = cryptos.find(c => c.id === row.dataset.id);
-        if (coin) openDetail(coin);
-      });
-    });
-
-    // Restore open detail if there was one
-    if (selectedId) {
-      const coin = cryptos.find(c => c.id === selectedId);
-      if (coin) openDetail(coin);
-    }
-  }
-
-  // ── Filter pill clicks ─────────────────────────────────────────────────
-  document.getElementById("filter-group").addEventListener("click", (e) => {
-    const pill = e.target.closest(".pill");
-    if (!pill) return;
-    filter = pill.dataset.filter;
-    persistState();
-    renderTable();
-  });
-
-  // ── Athena re-injection (openai:set_globals) ───────────────────────────
-  window.addEventListener("openai:set_globals", (e) => {
-    const globals = e.detail?.globals;
-    if (globals?.toolOutput?.cryptos) {
-      cryptos = globals.toolOutput.cryptos;
-      renderTable();
-    }
-  }, { passive: true });
-
-  // ── Initial render ─────────────────────────────────────────────────────
-  if (cryptos.length) {
-    renderTable();
-  } else {
-    // If Athena hasn't injected data yet, try calling the tool directly
-    if (window.openai?.callTool) {
-      window.openai.callTool("get_crypto_data", { limit: 20 }).then(resp => {
-        if (resp?.structuredContent?.cryptos) {
-          cryptos = resp.structuredContent.cryptos;
-          renderTable();
+      // sort
+      const sorted = [...cryptos].sort((a, b) => {
+        let va, vb;
+        switch (sortCol) {
+          case 'rank':    va = a.rank; vb = b.rank; break;
+          case 'price':   va = a.current_price; vb = b.current_price; break;
+          case 'change24':va = a.price_change_percentage_24h; vb = b.price_change_percentage_24h; break;
+          case 'change7': va = a.change_7d; vb = b.change_7d; break;
+          case 'mcap':    va = a.market_cap; vb = b.market_cap; break;
+          case 'vol':     va = a.volume_24h; vb = b.volume_24h; break;
+          default: va = a.rank; vb = b.rank;
         }
+        if (va == null) return 1; if (vb == null) return -1;
+        return sortAsc ? va - vb : vb - va;
       });
+
+      tbodyEl.innerHTML = sorted.map(c => `
+        <tr data-id="${c.id}">
+          <td>
+            <div class="coin-cell">
+              <span class="rank">${c.rank}</span>
+              <div class="coin-info">
+                <span class="coin-symbol">${c.symbol}</span>
+                <span class="coin-name">${c.name}</span>
+              </div>
+            </div>
+          </td>
+          <td class="price">${fmtPrice(c.current_price)}</td>
+          <td class="${changeClass(c.price_change_percentage_24h)}">${changeText(c.price_change_percentage_24h)}</td>
+          <td class="${changeClass(c.change_7d)}">${changeText(c.change_7d)}</td>
+          <td>${fmtBig(c.market_cap)}</td>
+          <td>${fmtBig(c.volume_24h)}</td>
+        </tr>
+      `).join('');
+
+      // update sorted header highlight
+      document.querySelectorAll('thead th').forEach(th => {
+        th.classList.toggle('sorted', th.dataset.col === sortCol);
+      });
+
+      // restore detail panel if still selected
+      if (selectedId) {
+        const c = cryptos.find(x => x.id === selectedId);
+        if (c) renderDetail(c); else closeDetail();
+      }
     }
-  }
-  if (req.method === "GET" && req.url === "/widget.html") {
-  console.log("✅ Widget HTML requested from:", req.headers["user-agent"]);
-  res.writeHead(200, {
-    "content-type": "text/html",
-    "Access-Control-Allow-Origin": "*",
-  }).end(widgetHtml);
-  return;
-}
-</script>
+
+    function renderDetail(c) {
+      detailTitle.textContent = `${c.symbol} · ${c.name}`;
+      detailGrid.innerHTML = [
+        ['Price',      fmtPrice(c.current_price)],
+        ['Market Cap', fmtBig(c.market_cap)],
+        ['24h Change', `<span class="${changeClass(c.price_change_percentage_24h)}">${changeText(c.price_change_percentage_24h)}</span>`],
+        ['7d Change',  `<span class="${changeClass(c.change_7d)}">${changeText(c.change_7d)}</span>`],
+        ['30d Change', `<span class="${changeClass(c.change_30d)}">${changeText(c.change_30d)}</span>`],
+        ['Volume 24h', fmtBig(c.volume_24h)],
+        ['Circulating', c.circulating ? fmt(c.circulating, 0) + ' ' + c.symbol : '—'],
+        ['ATH',        fmtPrice(c.ath)],
+      ].map(([label, val]) => `
+        <div class="detail-item">
+          <label>${label}</label>
+          <span>${val}</span>
+        </div>
+      `).join('');
+      detailEl.classList.add('open');
+    }
+
+    function closeDetail() {
+      selectedId = null;
+      detailEl.classList.remove('open');
+    }
+
+    // ── events ───────────────────────────────────────────────────────────────
+    document.getElementById('detail-close').addEventListener('click', closeDetail);
+
+    document.querySelectorAll('thead th').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (sortCol === col) { sortAsc = !sortAsc; }
+        else { sortCol = col; sortAsc = col === 'rank'; }
+        render();
+      });
+    });
+
+    tbodyEl.addEventListener('click', e => {
+      const row = e.target.closest('tr');
+      if (!row) return;
+      const id = row.dataset.id;
+      if (selectedId === id) { closeDetail(); return; }
+      selectedId = id;
+      const c = cryptos.find(x => x.id === id);
+      if (c) renderDetail(c);
+    });
+
+    // ── data ingestion ───────────────────────────────────────────────────────
+    function ingest(data) {
+      if (!data) return;
+      // Accept both { cryptos: [...] } and raw array
+      const list = Array.isArray(data) ? data : (data.cryptos ?? data.data ?? []);
+      if (list.length) {
+        cryptos = list;
+        render();
+      }
+    }
+
+    // 1. Initial load from window.openai.toolOutput (injected by Athena)
+    if (window.openai?.toolOutput) {
+      ingest(window.openai.toolOutput);
+    }
+
+    // 2. Listen for subsequent updates (when the widget is re-rendered)
+    window.addEventListener('openai:set_globals', (event) => {
+      const globals = event.detail?.globals;
+      if (globals?.toolOutput) ingest(globals.toolOutput);
+    }, { passive: true });
+
+    // 3. Fallback: parse data-cryptos attribute (set by some host integrations)
+    if (!cryptos.length) {
+      const attr = document.currentScript?.closest('[data-cryptos]')
+                ?? document.querySelector('[data-cryptos]');
+      if (attr) {
+        try { ingest(JSON.parse(attr.dataset.cryptos)); } catch {}
+      }
+    }
+
+    // If still empty after a short grace period, show empty state
+    setTimeout(() => {
+      if (!cryptos.length) {
+        statusEl.style.display = 'none';
+        emptyEl.style.display  = 'block';
+      }
+    }, 5000);
+  </script>
 </body>
 </html>
